@@ -1,0 +1,7 @@
+{
+    "name": "HardeepVicky/Php-Query-Builder",
+    "description": "Query builder Tool for Php",
+    "require": {
+        "php": "^5.2"
+    }
+}
