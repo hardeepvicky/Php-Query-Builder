@@ -16,6 +16,16 @@ class Where
     
     public function add($field, $value, $operator = "=")
     {
+        if (
+                strpos($field, "=") !== FALSE 
+                || strpos($field, ">") !== FALSE 
+                || strpos($field, "<") !== FALSE 
+                || strpos($field, "NOT") !== FALSE 
+            )
+        {
+            $operator = "";
+        }
+                
         $this->fields[] = array(
             "field" => trim($field),
             "value" => $value,
