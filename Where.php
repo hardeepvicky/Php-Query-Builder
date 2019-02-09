@@ -14,7 +14,7 @@ class Where
         return new Where($op);
     }
     
-    public function add($field, $value, $operator = "=")
+    public function add($field, $value, $operator = "=", $value_stype = "string")
     {
         if (
                 strpos($field, "=") !== FALSE 
@@ -24,6 +24,25 @@ class Where
             )
         {
             $operator = "";
+        }
+        
+        switch($value_type)
+        {
+            case "string":
+                $value = "'" . $value . "'";
+                break;
+            
+            case "date":
+            case "datetime":
+                $value = date("Y-m-d H:i:s", strtotime($value));
+                $value = "'" . $value . "'";
+                break;
+            
+            case "bool":
+            case "boolean":
+                $value = (int) $value;
+                $value = "'" . $value . "'";
+                break;
         }
                 
         $this->fields[] = array(
@@ -88,7 +107,7 @@ class Where
         
         foreach($data as $k => $v)
         {
-            $list[] = $k . "'" . $v . "'";
+            $list[] = $k . $v ;
         }
         
         return $list;
