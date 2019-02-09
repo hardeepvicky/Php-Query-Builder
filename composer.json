@@ -1,5 +1,5 @@
 {
-    "name": "HardeepVicky/Php-Query-Builder",
+    "name": "hardeep-vicky/php-query-builder",
     "description": "Query builder Tool for Php",
     "require": {
         "php": "^5.2"
