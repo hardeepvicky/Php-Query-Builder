@@ -14,7 +14,7 @@ class Where
         return new Where($op);
     }
     
-    public function add($field, $value, $operator = "=", $value_stype = "string")
+    public function add($field, $value, $operator = "=", $value_type = "string")
     {
         if (
                 strpos($field, "=") !== FALSE 
