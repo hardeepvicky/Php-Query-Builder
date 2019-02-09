@@ -25,6 +25,16 @@ class Where
         return $this;
     }
     
+    public function addList($arr, $op)
+    {
+        foreach($arr as $field => $value)
+        {
+            $this->add($field, $value, $op);
+        }
+        
+        return $this;
+    }
+    
     public function addWhere(Where $wh)
     {
         $this->where_list[] = $wh;
@@ -37,7 +47,19 @@ class Where
         
         foreach($this->fields as $field)
         {
-            $list[$table . $field["field"] . " " . $field["op"]] = $field["value"];
+            $key = $field["field"];
+            
+            if ($table)
+            {
+                $key = $table . "." . $key;
+            }
+            
+            if ($field["op"])
+            {
+                $key = $key . " " . $field["op"];
+            }
+            
+            $list[$key] = $field["value"];
         }
         
         $list = $this->_listToStr($list);
