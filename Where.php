@@ -20,8 +20,6 @@ class Where
                 strpos($field, "=") !== FALSE 
                 || strpos($field, ">") !== FALSE 
                 || strpos($field, "<") !== FALSE 
-                || strpos(strtoupper($field), "NOT") !== FALSE 
-                || strpos(strtoupper($field), "IN") !== FALSE
             )
         {
             $operator = "";
