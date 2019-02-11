@@ -20,29 +20,51 @@ class Where
                 strpos($field, "=") !== FALSE 
                 || strpos($field, ">") !== FALSE 
                 || strpos($field, "<") !== FALSE 
-                || strpos($field, "NOT") !== FALSE 
+                || strpos(strtoupper($field, "NOT")) !== FALSE 
+                || strpos(strtoupper($field, "IN")) !== FALSE
             )
         {
             $operator = "";
         }
         
-        switch($value_type)
+        switch(gettype($value))
         {
             case "string":
-                $value = "'" . $value . "'";
-                break;
-            
-            case "date":
-            case "datetime":
-                $value = date("Y-m-d H:i:s", strtotime($value));
-                $value = "'" . $value . "'";
-                break;
-            
-            case "bool":
+                switch($value_type)
+                {
+                    case "string":
+                        $value = "'" . $value . "'";
+                        break;
+
+                    case "date":
+                    case "datetime":
+                        $value = date("Y-m-d H:i:s", strtotime($value));
+                        $value = "'" . $value . "'";
+                        break;
+
+                    case "bool":
+                    case "boolean":
+                        $value = (int) $value;
+                        break;
+                }
+            break;
+        
             case "boolean":
                 $value = (int) $value;
-                $value = "'" . $value . "'";
-                break;
+            break;
+        
+            case "array":
+                $value = "(" . implode(",", $value) . ")";
+                $operator = "IN";
+            break;
+        
+            case "NULL":
+                $value = "IS NULL";
+                $operator = "";
+            break;
+        
+            default:
+                throw new Exception("Un-Supported value type");
         }
                 
         $this->fields[] = array(
@@ -107,7 +129,7 @@ class Where
         
         foreach($data as $k => $v)
         {
-            $list[] = $k . $v ;
+            $list[] = $k . " " . $v ;
         }
         
         return $list;
