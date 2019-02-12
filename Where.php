@@ -54,7 +54,6 @@ class Where
         
             case "array":
                 $value = "(" . implode(",", $value) . ")";
-                $operator = "IN";
             break;
         
             case "NULL":
