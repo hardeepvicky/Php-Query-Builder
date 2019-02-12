@@ -48,6 +48,7 @@ class Where
             break;
         
             case "boolean":
+            case "integer":
                 $value = (int) $value;
             break;
         
@@ -62,7 +63,7 @@ class Where
             break;
         
             default:
-                throw new Exception("Un-Supported value type");
+                throw new \Exception("Query Builder : Un-Supported value type :" . gettype($value) );
         }
                 
         $this->fields[] = array(
