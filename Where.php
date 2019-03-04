@@ -35,6 +35,10 @@ class Where
                         break;
 
                     case "date":
+                        $value = date("Y-m-d", strtotime($value));
+                        $value = "'" . $value . "'";
+                        break;
+                    
                     case "datetime":
                         $value = date("Y-m-d H:i:s", strtotime($value));
                         $value = "'" . $value . "'";
@@ -54,6 +58,7 @@ class Where
         
             case "array":
                 $value = "(" . implode(",", $value) . ")";
+                $operator = "IN";
             break;
         
             case "NULL":
@@ -96,19 +101,22 @@ class Where
         
         foreach($this->fields as $field)
         {
-            $key = $field["field"];
-            
-            if ($table)
+            if (strlen($field["value"]) > 0)
             {
-                $key = $table . "." . $key;
+                $key = $field["field"];
+
+                if ($table)
+                {
+                    $key = $table . "." . $key;
+                }
+
+                if ($field["op"])
+                {
+                    $key = $key . " " . $field["op"];
+                }
+
+                $list[$key] = $field["value"];
             }
-            
-            if ($field["op"])
-            {
-                $key = $key . " " . $field["op"];
-            }
-            
-            $list[$key] = $field["value"];
         }
         
         $list = $this->_listToStr($list);

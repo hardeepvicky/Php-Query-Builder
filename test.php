@@ -1,11 +1,11 @@
 <?php
 require_once './Query.php';
 require_once './Where.php';
+require_once './Join.php';
 
 $qb = new \QueryBuilder\QuerySelect("orders");
 
-$wh = \QueryBuilder\Where::init("AND")
-        ->add("product_id", "1")
-        ->addWhere(\QueryBuilder\Where::init("OR")->add("is_deliverd", "1")->add("is_ship", "1"));
+$qb->field("id");
+$qb->join(\QueryBuilder\Join::init("INNER JOIN", "id", "order_details", "OD", "order_id")->field("product_id")->field);
         
-echo $qb->setWhere($wh)->order("id")->get();
+echo $qb->get();

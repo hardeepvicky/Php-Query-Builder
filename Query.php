@@ -3,7 +3,7 @@ namespace QueryBuilder;
 
 class QuerySelect
 {
-    private $table, $alias, $fields = array(), $orders = array(), $where = null;
+    private $table, $alias, $fields = array(), $orders = array(), $where = null, $joins = array();
     
     public function __construct($table, $alias = NULL)
     {
@@ -41,25 +41,32 @@ class QuerySelect
         $table_alias = $this->alias ? $this->alias : $this->table;
         foreach($this->fields as  $ailas => $field)
         {
-            $fields[] = $table_alias . "." . $field . " AS " . $table_alias . "." . $ailas;
+            $fields[] = $table_alias . "." . $field . " AS " . $table_alias . "__" . $ailas;
         }
         
-        if ($fields)
+        if (!$fields)
         {
-            $fields = implode(", ", $fields);
-        }
-        else
-        {
-            $fields = "*";
+            $fields[] = "$table_alias.*";
+            
         }
         
-        if ($this->alias)
+        foreach($this->joins as $join)
         {
-            $q = "SELECT $fields FROM " . $this->table . " AS " . $table_alias;
+            $fields = array_merge($fields, $join["join"]->getFields());
         }
-        else
+        
+        $fields = implode(", ", $fields);
+        
+        $q = "SELECT $fields FROM " . $this->table . " AS " . $table_alias;
+        
+        foreach($this->joins as $join)
         {
-            $q = "SELECT $fields FROM " . $this->table;
+            $str = $this->getJoin($join["join"], $join["where"]);
+            
+            if ($str)
+            {
+                $q .= " " . $str;
+            }
         }
         
         $wh = "";
@@ -81,5 +88,32 @@ class QuerySelect
         }
         
         return $q . $wh . $order . ";";
+    }
+    
+    public function join(Join $join, Where $wh = null)
+    {
+        $this->joins[] = array(
+            "join" => $join,
+            "where" => $wh
+        );
+        
+        return $this;
+    }
+    
+    public function getJoin(Join $join, Where $wh = null)
+    {
+        if (is_null($wh))
+        {
+            $wh = new Where("AND");
+        }
+        
+        $table_alias = $this->alias ? $this->alias : $this->table;
+        $other_table_alias = $join->alias ? $join->alias : $join->table;
+        
+        $wh->add($table_alias . "." . $join->primary_field, $other_table_alias . "." . $join->foreign_field , "=", "");
+        
+        $q = $join->join_type . " " . $join->table . " AS " . $other_table_alias . " ON " . $wh->get();
+        
+        return $q;
     }
 }
