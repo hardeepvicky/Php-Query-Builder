@@ -47,12 +47,11 @@ class QuerySelect
         if (!$fields)
         {
             $fields[] = "$table_alias.*";
-            
         }
         
         foreach($this->joins as $join)
         {
-            $fields = array_merge($fields, $join["join"]->getFields());
+            $fields = array_merge($fields, $join->getFields());
         }
         
         $fields = implode(", ", $fields);
@@ -61,7 +60,7 @@ class QuerySelect
         
         foreach($this->joins as $join)
         {
-            $str = $this->getJoin($join["join"], $join["where"]);
+            $str = $join->get($table_alias);
             
             if ($str)
             {
@@ -90,30 +89,10 @@ class QuerySelect
         return $q . $wh . $order . ";";
     }
     
-    public function join(Join $join, Where $wh = null)
+    public function join(Join $join)
     {
-        $this->joins[] = array(
-            "join" => $join,
-            "where" => $wh
-        );
+        $this->joins[] = $join;
         
         return $this;
-    }
-    
-    public function getJoin(Join $join, Where $wh = null)
-    {
-        if (is_null($wh))
-        {
-            $wh = new Where("AND");
-        }
-        
-        $table_alias = $this->alias ? $this->alias : $this->table;
-        $other_table_alias = $join->alias ? $join->alias : $join->table;
-        
-        $wh->add($table_alias . "." . $join->primary_field, $other_table_alias . "." . $join->foreign_field , "=", "");
-        
-        $q = $join->join_type . " " . $join->table . " AS " . $other_table_alias . " ON " . $wh->get();
-        
-        return $q;
     }
 }
