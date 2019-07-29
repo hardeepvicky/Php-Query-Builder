@@ -79,7 +79,7 @@ class Where
         return $this;
     }
     
-    public function addList($arr, $op)
+    public function addList($arr, $op = "=")
     {
         foreach($arr as $field => $value)
         {
