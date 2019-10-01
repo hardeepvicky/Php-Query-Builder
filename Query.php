@@ -17,6 +17,16 @@ class QuerySelect
         return $this;
     }
     
+    public function getWhere()
+    {
+        if (!$this->where)
+        {
+            $this->where = Where::init("AND");
+        }
+        
+        return $this->where;
+    }
+    
     public function field($field, $alias = "")
     {
         if (!$alias)
@@ -26,6 +36,11 @@ class QuerySelect
         
         $this->fields[$alias] = $field;
         return $this;
+    }
+    
+    public function getFields()
+    {
+        return $this->fields;
     }
     
     public function order($field, $order = "ASC")
@@ -71,8 +86,9 @@ class QuerySelect
         $wh = "";
         if ($this->where)
         {
-            $wh = " WHERE " . $this->where->get($table_alias . ".");
+            $wh = " WHERE " . $this->where->get($table_alias);
         }
+        
         
         $list = array();
         $order = "";
