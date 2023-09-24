@@ -8,7 +8,7 @@
             "email": "hardeepvicky1@gmail.com"
         }
     ],
-
+    "license": "MIT",
     "require": {
         "php" : ">=8.0"
     },   
