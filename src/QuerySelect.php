@@ -1,17 +1,17 @@
 <?php
-namespace QueryBuilder;
+namespace HardeepVicky\QueryBuilder;
 
 class QuerySelect
 {
     private $table, $alias, $fields = array(), $orders = array(), $where = null, $joins = array();
     
-    public function __construct($table, $alias = NULL)
+    public function __construct(String $table, String $alias = NULL)
     {
         $this->table = $table;
         $this->alias = $alias;
     }
     
-    public function setWhere($wh)
+    public function setWhere(Where $wh)
     {
         $this->where = $wh;
         return $this;
@@ -43,7 +43,7 @@ class QuerySelect
         return $this->fields;
     }
     
-    public function order($field, $order = "ASC")
+    public function order(String $field, String $order = "ASC")
     {
         $this->orders[$field] = $order;
         return $this;

@@ -1,5 +1,5 @@
 <?php
-namespace QueryBuilder;
+namespace HardeepVicky\QueryBuilder;
 
 class Join
 {

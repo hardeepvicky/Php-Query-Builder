@@ -1,20 +1,20 @@
 <?php
-namespace QueryBuilder;
+namespace HardeepVicky\QueryBuilder;
 
 class Where
 {
     private $op = null, $fields = array(), $where_list = array();
-    public function __construct($op)
+    public function __construct(String $op)
     {
         $this->op = " " . $op . " ";
     }
     
-    public static function init($op)
+    public static function init(String $op)
     {
         return new Where($op);
     }
     
-    public function add($field, $value, $operator = "=", $value_type = "string")
+    public function add(String $field, $value, String $operator = "=", String $value_type = "string")
     {
         if (
                 strpos($field, "=") !== FALSE 
