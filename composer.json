@@ -2,6 +2,13 @@
     "name": "hardeep-vicky/php-query-builder",
     "version" : "1.0.0",
     "description": "Query builder Tool for Php",
+    "authors": [
+        {
+            "name" : "Hardeep Singh",
+            "email": "hardeepvicky1@gmail.com"
+        }
+    ],
+
     "require": {
         "php" : ">=8.0"
     },   
