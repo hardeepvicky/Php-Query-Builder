@@ -3,26 +3,33 @@ require_once './vendor/autoload.php';
 
 use HardeepVicky\QueryBuilder\QuerySelect;
 use HardeepVicky\QueryBuilder\Join;
+use HardeepVicky\QueryBuilder\Table;
+use HardeepVicky\QueryBuilder\Where;
 use Symfony\Component\VarDumper\VarDumper;
 
-$qb = new QuerySelect("legder_sales", "Legder");
+$queryBuilder = new QuerySelect(new Table("categories", "C"));
 
-$qb->field("id");
-$qb->join(Join::init("INNER JOIN", "legder_voucher_type_id", "legder_voucher_types", "LegderVoucherType", "id"));
+$join_product = new Join(Join::LEFT, new Table("products", "P"), "category_id");
 
-$legder_detail_join = Join::init("LEFT JOIN", "id", "legder_sale_details", "LegderDetail", "legder_sale_id")->noField();
+        $join_order = new Join(Join::LEFT, new Table("orders", "O"), "product_id");
+        $join_order->field("order_no");
+        
+$join_product->join($join_order);
+$join_product->field("sku");
 
-$product_join = Join::init("LEFT JOIN", "product_id", "products", "Product", "id");
-$product_join->join(
-        Join::init("LEFT JOIN", "id", "product_files", "ProductFile", "product_id")->noField()
-        ->join(Join::init("LEFT JOIN", "image_id", "images", "ProductFileImage", "id"))
+$queryBuilder->join($join_product);
+
+$queryBuilder->setWhere(
+        Where::init("AND")
+        ->add("C.id", "0", ">", "")
+        ->addWhere
+        (
+                Where::init("OR")
+                ->add("P.id", NULL, "", "")
+                ->add("O.id", NULL, "", "")
+        )
 );
 
-$product_join->join(Join::init("LEFT JOIN", "category_id", "categories", "Category", "id")->field("name"));
-
-$legder_detail_join->join($product_join);
-$legder_detail_join->join(Join::init("LEFT JOIN", "item_id", "items", "Item", "id"));
-
-$qb->join($legder_detail_join);
+//$queryBuilder->addRawWhere("AND C.id IN (SELECT id from categories)");
         
-VarDumper::dump($qb->get());
+VarDumper::dump($queryBuilder->get());

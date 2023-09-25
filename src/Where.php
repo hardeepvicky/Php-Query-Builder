@@ -4,16 +4,33 @@ namespace HardeepVicky\QueryBuilder;
 class Where
 {
     private $op = null, $fields = array(), $where_list = array();
+
+    /**
+     * @param String $op
+     */
     public function __construct(String $op)
     {
-        $this->op = " " . $op . " ";
+        $this->op = " " . strtoupper(trim($op)) . " ";
     }
     
+    /**
+     * @param String $op
+     * 
+     * @return Where
+     */
     public static function init(String $op)
     {
         return new Where($op);
     }
     
+    /**
+     * @param String $field
+     * @param $value
+     * @param String $operator
+     * @param String $value_type
+     * 
+     * @return Where
+     */
     public function add(String $field, $value, String $operator = "=", String $value_type = "string")
     {
         if (
@@ -79,23 +96,39 @@ class Where
         return $this;
     }
     
-    public function addList($arr, $op = "=")
+    /**
+     * @param Array $arr 
+     * @param String $operator
+     * 
+     * @return Where
+     */
+    public function addList(Array $arr, String $operator = "=")
     {
         foreach($arr as $field => $value)
         {
-            $this->add($field, $value, $op);
+            $this->add($field, $value, $operator);
         }
         
         return $this;
     }
     
+    /**
+     * @param Where $wh
+     * 
+     * @return Where
+     */
     public function addWhere(Where $wh)
     {
         $this->where_list[] = $wh;
         return $this;
     }
     
-    public function get($table = "")
+    /**
+     * @param String $table
+     * 
+     * @return String
+     */
+    public function get(String $table = "")
     {
         $list = array();
         

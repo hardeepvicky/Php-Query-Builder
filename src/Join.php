@@ -3,35 +3,53 @@ namespace HardeepVicky\QueryBuilder;
 
 class Join
 {
-    public $join_type, $primary_field, $table, $alias, $foreign_field, $wh, $fields = array(), $joins = array();
+    const INNER = 'INNER JOIN';
+    const LEFT = 'LEFT JOIN';
+    const OUTER = 'OUTER JOIN';
+
+    protected Table $table;
+
+    protected $join_type, $foreign_field, $fields = array(), $joins = array();
     
-    public function __construct($join_type, $primary_field, $table, $alias, $foreign_field)
+    /**
+     * @param String $join_type
+     * @param Table $table
+     * @param String $foreign_field
+     */
+    public function __construct(String $join_type, Table $table, String $foreign_field)
     {
         $this->join_type = trim($join_type);
-        $this->primary_field = trim($primary_field);
-        $this->table = trim($table);
-        $this->alias = trim($alias);
+        $this->table = $table;
         $this->foreign_field = trim($foreign_field);
     }
-    
-    public static function init($join_type, $primary_field, $table, $alias, $foreign_field)
-    {
-        return new Join($join_type, $primary_field, $table, $alias, $foreign_field);
-    }
-    
+  
+    /**
+     * @param Join $join
+     * 
+     * @return Join
+     */
     public function join(Join $join)
     {
         $this->joins[] = $join;
         return $this;
     }
     
+     /**     
+     * @return QuerySelect
+     */
     public function noField()
     {
         $this->fields = null;
         return $this;
     }
     
-    public function field($field, $alias = "")
+    /**
+     * @param String $field
+     * @param String $alias
+     * 
+     * @return Join
+     */
+    public function field(String $field, String $alias = "")
     {
         if (!$alias)
         {
@@ -39,14 +57,25 @@ class Join
         }
         
         $this->fields[$alias] = $field;
+
         return $this;
     }
     
+    /**
+     * @return Array $field_list
+     */
     public function getFields()
     {
         $fields = array();
-        
-        $table_alias = $this->alias ? $this->alias : $this->table;
+
+        if ($this->table->alias)
+        {
+            $table_alias = $this->table->alias;            
+        }
+        else
+        {
+            $table_alias = "`" . $this->table->name . "`";
+        }
         
         if (is_array($this->fields))
         {
@@ -58,7 +87,7 @@ class Join
             {
                 foreach($this->fields as $ailas => $field)
                 {
-                    $fields[] = $table_alias . "." . $field . " AS " . $table_alias . "__" . $ailas;
+                    $fields[] = $table_alias . "." . $field;
                 }
             }
         }
@@ -70,29 +99,45 @@ class Join
         
         return $fields;
     }
-    
-    public function setWhere(Where $wh)
-    {
-        $this->wh = $wh;
-        return $this;
-    }
-    
-    public function get($table_alias)
-    {
-        if (is_null($this->wh))
+   
+    /**
+     * @param Table $calling_table
+     * 
+     * @return String
+     */
+    public function get(Table $calling_table)
+    {   
+        $q = $this->join_type;
+        
+        $join_table_alias = "";
+
+        if ($this->table->alias)
         {
-            $this->wh = new Where("AND");
+            $join_table_alias = $this->table->alias;
+
+            $q .= " " . "`" . $this->table->name . "`" . " AS " . $join_table_alias;
+        }
+        else
+        {
+            $join_table_alias = "`" . $this->table->name . "`";
+
+            $q .= " " . $join_table_alias;
         }
         
-        $join_table_alias = $this->alias ? $this->alias : $this->table;
-        
-        $this->wh->add($table_alias . "." . $this->primary_field, $join_table_alias . "." . $this->foreign_field , "=", "");
-        
-        $q = $this->join_type . " " . $this->table . " AS " . $join_table_alias . " ON " . $this->wh->get();
+        $q .= " ON " . $join_table_alias . "." . $this->foreign_field;
+
+        if ($calling_table->alias)
+        {
+            $q .= " = " . $calling_table->alias . "." . $calling_table->primary_field; 
+        }
+        else
+        {
+            $q .= " = " . "`" . $calling_table->name . "`" . "." . $calling_table->primary_field; 
+        }
         
         foreach($this->joins as $join)
         {
-            $q .= $join->get($join_table_alias);
+            $q .= " " . $join->get($this->table);
         }
         
         return $q;
