@@ -5,14 +5,15 @@ use Exception;
 
 class QuerySelect
 {
+    const TABLE_FIELD_SEP = "__";
+
     protected Table $table;
 
-    protected $field_list = [], $order_list = [], $where = null, $raw_where_list = [], $join_list = [];
+    protected Condition | NULL $where = NULL;
 
-    /**
-     * Sepretor for table alias and field alias
-     */
-    protected String $sep = "__";
+    protected Condition | NULL $having = NULL;
+
+    protected $field_list = [], $custom_field_list = [], $order_list = [], $group_by_list = [], $raw_where_list = [], $join_list = [];
 
     protected String $offset = "";
 
@@ -27,11 +28,11 @@ class QuerySelect
     }
     
     /**
-     * @param Where $wh
+     * @param Condition $wh
      * 
      * @return QuerySelect
      */
-    public function setWhere(Where $wh)
+    public function setWhere(Condition $wh)
     {
         $this->where = $wh;
 
@@ -39,13 +40,13 @@ class QuerySelect
     }
     
     /**     
-     * @return Where
+     * @return Condition
      */
     public function getWhere()
     {
         if (!$this->where)
         {
-            $this->where = Where::init("AND");
+            $this->where = Condition::init("AND");
         }
         
         return $this->where;
@@ -74,19 +75,53 @@ class QuerySelect
      */
     public function field(String $field, String | Null $alias = NULL, bool $prepend_table_alias = false)
     {
+        if ($field == "*")
+        {
+            return $this;
+        }
+
         if ($alias)
         {
             if ($prepend_table_alias)
             {
-                $alias = $this->table->getRefName() . $this->sep . $alias;
+                $alias = $this->table->getRefName() . static::TABLE_FIELD_SEP . $alias;
             }
+        }
+        else
+        {
+            if ($prepend_table_alias)
+            {
+                $alias = $this->table->getRefName() . static::TABLE_FIELD_SEP . $field;
+            }
+        }
 
+        if ($alias)
+        {
             $this->field_list[] = [$field, $alias];
         }
         else
         {
             $this->field_list[] = $field;
         }
+
+        return $this;
+    }
+
+    public function addCustomField(String $field)
+    {
+        $this->custom_field_list[] = $field;
+
+        return $this;
+    }
+
+    public function getCustomFieldList()
+    {
+        return $this->custom_field_list;
+    }
+
+    public function setCustomFieldList(Array $list)
+    {
+        $this->custom_field_list = $list;
 
         return $this;
     }
@@ -121,6 +156,32 @@ class QuerySelect
         return $this->field_list;
     }
 
+    
+
+    public function groupBy(String $field)
+    {
+        $this->group_by_list[] = trim($field);
+
+        return $this;
+    }
+
+    public function getGroupByList()
+    {
+        return $this->group_by_list;
+    }
+
+    public function setHaving(Condition $condition)
+    {
+        $this->having = $condition;
+
+        return $this;
+    }
+
+    public function getHaving()
+    {
+        return $this->having;
+    }
+    
     /**
      * @param String $direction
      * 
@@ -137,27 +198,17 @@ class QuerySelect
 
         return $direction;
     }
-    
+
     /**
      * @param String $field
      * 
      * @param String $direction
      */
-    public function orderField(String $field, String $direction = "ASC")
+    public function order(String $field, String $direction = "ASC")
     {
-        $this->order_list[$this->table->getRefName() . "." . $field] = $this->getOrderDirection($direction);
+        $field = trim($field);
 
-        return $this;
-    }
-
-    /**
-     * @param String $alias
-     * 
-     * @param String $direction
-     */
-    public function orderAlias(String $alias, String $direction = "ASC")
-    {
-        $this->order_list[$this->table->getRefName() . "__" . $alias] = $this->getOrderDirection($direction);
+        $this->order_list[$field] = $this->getOrderDirection($direction);
 
         return $this;
     }
@@ -240,11 +291,11 @@ class QuerySelect
             {
                 if (is_array($field))
                 {
-                    $fields[] = $table_alias . "." . $field[0] . " AS " . $field[1];
+                    $fields[] = $table_alias . "."  . $field[0] . " AS " . $field[1];
                 }
                 else
                 {
-                    $fields[] = $table_alias . "." . $field[0];
+                    $fields[] = $table_alias . "."  . $field;
                 }
             }
 
@@ -253,15 +304,28 @@ class QuerySelect
                 $fields[] = "$table_alias.*";
             }
         }
+
+        if (is_array($this->custom_field_list))
+        {
+            foreach($this->custom_field_list as $field)
+            {
+                $fields[] = $field;
+            }
+        }
         
         foreach($this->join_list as $join)
         {
             $fields = array_merge($fields, $join->getFields());
         }
         
-        $fields = implode(", ", $fields);
+        $field_str = "*"; 
         
-        $q = "SELECT $fields";
+        if (!empty($fields))
+        {
+            $field_str = implode(", ", $fields);
+        }
+        
+        $q = "SELECT $field_str";
 
         if ($this->table->alias)
         {
@@ -288,20 +352,49 @@ class QuerySelect
             $where_str = $this->where->get();
         }
 
-        if ($this->raw_where_list)
+        if (is_array($this->raw_where_list) && !empty($this->raw_where_list))
         {
             $where_str .= " " . implode(" ", $this->raw_where_list);
         }
 
+        $where_str = trim($where_str);
+
         if ($where_str)
         {
-            $q .= " WHERE " . trim($where_str);
+            $q .= " WHERE " . $where_str;
+        }
+
+        $group_str = "";
+        
+        if (is_array($this->group_by_list) && !empty($this->group_by_list))
+        {
+            $group_str .= " " . implode(" ", $this->group_by_list);
+        }
+
+        $group_str = trim($group_str);
+
+        if ($group_str)
+        {
+            $q .= " GROUP BY " . $group_str;
+        }
+
+        $having_str = "";
+        if ($this->having)
+        {
+            $having_str = $this->having->get();
+        }
+
+        $having_str = trim($having_str);
+
+        if ($having_str)
+        {
+            $q .= " HAVING " . $having_str;
         }
         
         $order_list = [];        
-        foreach($this->order_list as $field_or_alias => $dir)
+        foreach($this->order_list as $field => $dir)
         {
-            $order_list[] = $field_or_alias . " " . $dir;
+            $order_list[] = $field . " " . $dir;
         }
         
         if ($order_list)
@@ -314,9 +407,9 @@ class QuerySelect
             $q .= " LIMIT " . $this->limit;
         }
 
-        if ($this->limit)
+        if ($this->offset)
         {
-            $q .= " OFFSET " . $this->limit;
+            $q .= " OFFSET " . $this->offset;
         }
         
         return $q;

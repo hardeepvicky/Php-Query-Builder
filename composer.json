@@ -19,7 +19,5 @@
     },
     "minimum-stability" : "stable",
     "prefer-stable": true,
-    "require-dev": {
-        "symfony/var-dumper": "^6.3"
-    }
+    "require-dev": {}
 }

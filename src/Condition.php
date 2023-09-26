@@ -1,9 +1,9 @@
 <?php
 namespace HardeepVicky\QueryBuilder;
 
-class Where
+class Condition
 {
-    private $op = null, $fields = array(), $where_list = array();
+    private $op = null, $fields = array(), $Condition_list = array();
 
     /**
      * @param String $op
@@ -16,11 +16,11 @@ class Where
     /**
      * @param String $op
      * 
-     * @return Where
+     * @return Condition
      */
     public static function init(String $op)
     {
-        return new Where($op);
+        return new Condition($op);
     }
     
     /**
@@ -29,7 +29,7 @@ class Where
      * @param String $operator
      * @param String $value_type
      * 
-     * @return Where
+     * @return Condition
      */
     public function add(String $field, $value, String $operator = "=", String $value_type = "string")
     {
@@ -100,7 +100,7 @@ class Where
      * @param Array $arr 
      * @param String $operator
      * 
-     * @return Where
+     * @return Condition
      */
     public function addList(Array $arr, String $operator = "=")
     {
@@ -113,13 +113,13 @@ class Where
     }
     
     /**
-     * @param Where $wh
+     * @param Condition $wh
      * 
-     * @return Where
+     * @return Condition
      */
-    public function addWhere(Where $wh)
+    public function addCondition(Condition $wh)
     {
-        $this->where_list[] = $wh;
+        $this->Condition_list[] = $wh;
         return $this;
     }
     
@@ -128,9 +128,9 @@ class Where
      * 
      * @return String
      */
-    public function get(String $table = "")
+    public function get(String $table_name = "")
     {
-        $list = array();
+        $list = [];
         
         foreach($this->fields as $field)
         {
@@ -138,9 +138,9 @@ class Where
             {
                 $key = $field["field"];
 
-                if ($table)
+                if ($table_name)
                 {
-                    $key = $table . "." . $key;
+                    $key = $table_name . "." . $key;
                 }
 
                 if ($field["op"])
@@ -148,30 +148,21 @@ class Where
                     $key = $key . " " . $field["op"];
                 }
 
-                $list[$key] = $field["value"];
+                $list[] = $key . " " . $field["value"];
             }
         }
         
-        $list = $this->_listToStr($list);
-        
-        foreach($this->where_list as $wh)
+        foreach($this->Condition_list as $wh)
         {
-            $list[] = $wh->get($table);
+            $list[] = $wh->get($table_name);
+        }
+
+        if (empty($list))
+        {
+            return "";
         }
         
         return "(" . implode($this->op, $list) . ")";
-    }
-    
-    private function _listToStr($data)
-    {
-        $list = array();
-        
-        foreach($data as $k => $v)
-        {
-            $list[] = $k . " " . $v ;
-        }
-        
-        return $list;
     }
 }
 
