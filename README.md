@@ -1,4 +1,3 @@
-
 # PHP MySQL Query Builder
 
 This library required when you need to create MySQL Query using classes and arrays. This Library only for creating Select Query For MySQL Databse.
@@ -6,9 +5,6 @@ This library required when you need to create MySQL Query using classes and arra
 i have used SqlFormatter Library built by Jeremy Dorn <jeremy@jeremydorn.com> to format query in browser.
 
 Feel Free to comment and if any one want to countribute then please contact me Hardeep Singh <hardeepvicky1@gmai.com>.
-
-
-
 
 ## Installation
 
@@ -18,8 +14,6 @@ Install Library using composer
   composer require hardeep-vicky/php-query-builder
 ```
 
-
-    
 ## Basic Usage/Examples
 
 - First include composer's autoload file.
@@ -54,20 +48,19 @@ echo $q;
 
 ```
 
-
 ## Output
-```
+
 SELECT 
   C.* 
 FROM 
   `countries` AS C 
 WHERE 
   (C.name like '%india%')
-```
+
 ## Use with Complex Conditions
+
 ```php
 require_once './vendor/autoload.php';
-
 use HardeepVicky\QueryBuilder\QuerySelect;
 use HardeepVicky\QueryBuilder\Table;
 use HardeepVicky\QueryBuilder\Join;
@@ -87,31 +80,23 @@ $querySelect->setWhere(
 $q = $querySelect->get();
 
 echo $q;
+```
+
+## Output
 
 ```
-## Output
-```
-SELECT 
-  C.* 
-FROM 
-  `countries` AS C 
-WHERE 
-  (C.name like '%india%')
-```
-## Output
-```
-SELECT 
-  C.* 
-FROM 
-  `countries` AS C 
-WHERE 
+SELECT
+  C.*
+FROM
+  `countries` AS C
+WHERE
   (
-    region = 'Asia' 
+    region = 'Asia'
     AND (
-      C.name like '%india%' 
-      OR C.name like '%pakistan%'
+        C.name like '%india%' OR C.name like '%pakistan%'
     )
-  )
+)
+
 ```
 ## Example with Join
 
@@ -135,6 +120,7 @@ $q = $querySelect->get();
 echo SqlFormatter::format($q);
 
 ```
+
 ## Output
 
 ```
@@ -159,7 +145,7 @@ class Join
     const INNER = 'INNER JOIN';
     const LEFT = 'LEFT JOIN';
     const OUTER = 'OUTER JOIN';
-    
+  
     /**
      * @param String $join_type
      * @param Table $table
@@ -169,17 +155,21 @@ class Join
     {
 ```
 
-And we call 
+And we call
+
 ```
 $join_state->field("name"); 
 ```
+
 this statement make select `name` field of states table. This function `field()` has three option
+
 ```
 $join_state->field("name");   //output S.name
 $join_state->field("name", "state_name");  //output S.name as state_name
 $join_state->field("name", null, true);  //output S.name as S__name
 
 ```
+
 Above options also avialable in QuerySelect class
 
 ```
@@ -187,7 +177,6 @@ $querySelect->field("name");   //output S.name
 $querySelect->field("name", "country_name");  //output C.name as country_name
 $querySelect->field("name", null, true);  //output C.name as C__name
 ```
-
 
 you can set also no field as below
 
@@ -200,7 +189,6 @@ $querySelect->noField();
 ```
 
 this statement make no field selction in query
-
 
 ## Multiple Join
 
@@ -217,12 +205,14 @@ $join_state->field("name");
 $querySelect->join($join_state);
 
 $querySelect->field("id");
-$querySelect->field("name");        
-        
+$querySelect->field("name");      
+      
 $q = $querySelect->get();
 
 ```
+
 ## Output
+
 ```
 SELECT 
   Country.id, 
@@ -250,8 +240,8 @@ $join_state->field("name");
 $querySelect->join($join_state);
 
 $querySelect->field("id");
-$querySelect->field("name");        
-        
+$querySelect->field("name");      
+      
 $q = $querySelect->get();
 ```
 
@@ -268,7 +258,9 @@ FROM
   LEFT JOIN `states` ON `states`.country_id = `countries`.id 
   LEFT JOIN `cities` ON `cities`.state_id = `states`.id
 ```
+
 ## Join With Condition
+
 We have two options here
 
 ```php
@@ -281,6 +273,7 @@ $join_city->setWhere(
 ```
 
 ## Output
+
 ```
 SELECT 
   C.name, 
@@ -294,13 +287,14 @@ FROM
   )
 ```
 
-### we can concat aw string as below
+### we can concat raw where string as below
 
 ```php
 $join_city->addRawWhere("AND (S.name = City.name)");
 ```
 
 ### Output
+
 ```
 SELECT 
   C.name AS C__name, 
@@ -309,8 +303,7 @@ SELECT
 FROM 
   `countries` AS C 
   INNER JOIN `states` AS S ON S.country_id = C.id 
-  INNER JOIN `cities` AS City ON City.state_id = S.id 
-  AND (S.name = City.name)
+  INNER JOIN `cities` AS City ON City.state_id = S.id AND (S.name = City.name)
 ```
 
 ## Another Examples are below
@@ -325,7 +318,7 @@ $querySelect->join($join_state);
 
 $querySelect->field("name");
 
-$querySelect->addCustomField("SUM(S.id) AS state_count");
+$querySelect->addCustomField("COUNT(S.id) AS state_count");
 
 $querySelect->groupBy("countries.id");
 
@@ -334,17 +327,21 @@ $querySelect->setHaving(Condition::init("AND")->add("state_count", 5, ">"));
 $querySelect->order("state_count", "desc");
 
 $querySelect->setLimit(10);
-        
+      
 $q = $querySelect->get();
 
 echo SqlFormatter::format($q);
 ```
 
+In above example we use custom field `$querySelect->addCustomField("COUNT(S.id) AS state_count");`
+and conditions in having clause `$querySelect->setHaving(Condition::init("AND")->add("state_count", 5, ">"));`
+
 ## Output
+
 ```
 SELECT 
   `countries`.name, 
-  SUM(S.id) AS state_count 
+  COUNT(S.id) AS state_count 
 FROM 
   `countries` 
   LEFT JOIN `states` AS S ON S.country_id = `countries`.id 
@@ -357,7 +354,6 @@ ORDER BY
 LIMIT 
   10
 ```
-
 
 ```php
 $querySelect = new QuerySelect(new Table("countries", "C"));
@@ -382,11 +378,12 @@ $querySelect->groupBy("C.id");
 $querySelect->order("same_name_count", "DESC");
 
 $querySelect->setHaving(Condition::init("AND")->add("C__name", "%india%", "like"));
-        
+      
 $q = $querySelect->get();
 ```
 
 ## Output
+
 ```
 SELECT 
   C.name AS C__name, 
