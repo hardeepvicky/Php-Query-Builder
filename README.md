@@ -2,9 +2,9 @@
 
 This library required when you need to create MySQL Query using classes and arrays. This Library only for creating Select Query For MySQL Databse.
 
-i have used SqlFormatter Library built by Jeremy Dorn <jeremy@jeremydorn.com> to format query in browser.
+i have used SqlFormatter Library built by **Jeremy Dorn** <jeremy@jeremydorn.com> to format query in browser.
 
-Feel Free to comment and if any one want to countribute then please contact me Hardeep Singh <hardeepvicky1@gmai.com>.
+Feel Free to comment and if any one want to countribute then please contact me **Hardeep Singh** Contact me at <hardeepvicky1@gmail.com> OR at <hardeep.singh417@gmail.com>
 
 ## Installation
 
@@ -50,12 +50,12 @@ echo $q;
 
 ## Output
 
-SELECT 
-  C.* 
-FROM 
-  `countries` AS C 
-WHERE 
-  (C.name like '%india%')
+SELECT
+C.*
+FROM
+`countries` AS C
+WHERE
+(C.name like '%india%')
 
 ## Use with Complex Conditions
 
@@ -98,6 +98,7 @@ WHERE
 )
 
 ```
+
 ## Example with Join
 
 ```php
@@ -205,8 +206,8 @@ $join_state->field("name");
 $querySelect->join($join_state);
 
 $querySelect->field("id");
-$querySelect->field("name");      
-      
+$querySelect->field("name");  
+  
 $q = $querySelect->get();
 
 ```
@@ -240,8 +241,8 @@ $join_state->field("name");
 $querySelect->join($join_state);
 
 $querySelect->field("id");
-$querySelect->field("name");      
-      
+$querySelect->field("name");  
+  
 $q = $querySelect->get();
 ```
 
@@ -327,7 +328,7 @@ $querySelect->setHaving(Condition::init("AND")->add("state_count", 5, ">"));
 $querySelect->order("state_count", "desc");
 
 $querySelect->setLimit(10);
-      
+  
 $q = $querySelect->get();
 
 echo SqlFormatter::format($q);
@@ -378,7 +379,7 @@ $querySelect->groupBy("C.id");
 $querySelect->order("same_name_count", "DESC");
 
 $querySelect->setHaving(Condition::init("AND")->add("C__name", "%india%", "like"));
-      
+  
 $q = $querySelect->get();
 ```
 
@@ -400,3 +401,15 @@ HAVING
 ORDER BY 
   same_name_count DESC
 ```
+
+## 🚀 About Me
+
+I'm a PHP Developer creating web applications and php libraries since 2014. Contact me at <hardeepvicky1@gmail.com> OR at <hardeep.singh417@gmail.com>
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Authors
+
+- [Hardeep Singh](https://www.github.com/hardeepvicky)
