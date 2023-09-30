@@ -3,7 +3,7 @@
     "version" : "1.0.0",
     "description": "Query builder Tool for Php",
     "require": {
-        "php" : ">=8.0"
+        "php" : ">=5.6"
     },   
     "autoload": {
         "psr-4": {
