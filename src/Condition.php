@@ -10,7 +10,15 @@ class Condition
      */
     public function __construct(String $op)
     {
-        $this->op = " " . strtoupper(trim($op)) . " ";
+        $op = strtoupper(trim($op));
+        if ($op)
+        {
+            $this->op = " " . strtoupper(trim($op)) . " ";
+        }
+        else
+        {
+            $this->op = "";
+        }
     }
     
     /**

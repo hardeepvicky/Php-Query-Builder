@@ -50,7 +50,7 @@ $join_state->field("name");
 $querySelect->join($join_state);
 
 $querySelect->setWhere(
-        Condition::init("AND")->add("C.name", "india")
+        Condition::init("AND")->add("C.name", ["india", 1], "IN")
 );
 
 $querySelect->setLimit(10);
