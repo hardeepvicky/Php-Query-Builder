@@ -41,41 +41,64 @@ class Where
         {
             $operator = "";
         }
-        
+
+        $will_condition_apply = true;
+
         switch(gettype($value))
         {
+            case "integer":
+            case "float":                
+                break;
+
+            case "boolean":
+                $value = (int) $value;
+            break;
+
             case "string":
-                switch($value_type)
+                $value = trim($value);
+
+                $null_present = strpos(strtoupper($value), "NULL") >= 0;
+
+                if (!$null_present)
                 {
-                    case "string":
-                        $value = "'" . $value . "'";
-                        break;
-
-                    case "date":
-                        $value = date("Y-m-d", strtotime($value));
-                        $value = "'" . $value . "'";
-                        break;
-                    
-                    case "datetime":
-                        $value = date("Y-m-d H:i:s", strtotime($value));
-                        $value = "'" . $value . "'";
-                        break;
-
-                    case "bool":
-                    case "boolean":
-                        $value = (int) $value;
-                        break;
+                    $value = $this->_parseStringValue($value);
+                    if ($value === false)
+                    {
+                        $will_condition_apply = false;
+                    }
                 }
             break;
         
-            case "boolean":
-            case "integer":
-                $value = (int) $value;
-            break;
+            
         
             case "array":
-                $value = "(" . implode(",", $value) . ")";
-                $operator = "IN";
+                if (empty($value))
+                {
+                    $will_condition_apply = false;
+                    break;
+                }
+
+                $arr = $value;
+
+                foreach($arr as $k => $v)
+                {
+                    switch(gettype($v))
+                    {
+                        case "integer":
+                        case "float":                
+                            break;
+                
+                        case "string":
+                            $arr[$k] = $v = $this->_parseStringValue($v);
+                            if ($v === false)
+                            {
+                                unset($arr[$k]);
+                            }
+                        break;
+                    }
+                }
+
+                $value = "(" . implode(",", $arr) . ")";
             break;
         
             case "NULL":
@@ -87,13 +110,48 @@ class Where
                 throw new \Exception("Query Builder : Un-Supported value type :" . gettype($value) );
         }
                 
-        $this->fields[] = array(
-            "field" => trim($field),
-            "value" => $value,
-            "op" => trim($operator)
-        );
+        if ($will_condition_apply)
+        {
+            $this->fields[] = array(
+                "field" => trim($field),
+                "value" => $value,
+                "op" => trim($operator)
+            );
+        }
         
         return $this;
+    }
+
+    private function _parseStringValue($value, $value_type = "string")
+    {
+        if (is_string($value) && strlen($value) > 0)
+        {
+            switch($value_type)
+            {
+                case "string":
+                    $value = "'" . $value . "'";
+                    break;
+
+                case "date":
+                    $value = date("Y-m-d", strtotime($value));
+                    $value = "'" . $value . "'";
+                    break;
+                
+                case "datetime":
+                    $value = date("Y-m-d H:i:s", strtotime($value));
+                    $value = "'" . $value . "'";
+                    break;
+
+                case "bool":
+                case "boolean":
+                    $value = (int) $value;
+                    break;
+            }
+
+            return $value;
+        }
+
+        return false;
     }
     
     /**

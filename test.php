@@ -27,6 +27,8 @@ $queryBuilder->setWhere(
                 Where::init("OR")
                 ->add("P.id", NULL, "", "")
                 ->add("O.id", NULL, "", "")
+                ->add("O.id", "IS NOT NULL", "", "")
+                ->add("O.id", ["a", 1], "NOT IN", "")
         )
 );
 
