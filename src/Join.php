@@ -9,7 +9,9 @@ class Join
 
     protected Table $table;
 
-    protected $join_type, $foreign_field, $fields = array(), $joins = array();
+    protected Condition | NULL $where = NULL;
+
+    protected $join_type, $foreign_field, $field_list = [], $join_list = [], $raw_where_list = [];
     
     /**
      * @param String $join_type
@@ -22,6 +24,43 @@ class Join
         $this->table = $table;
         $this->foreign_field = trim($foreign_field);
     }
+
+    /**
+     * @param Condition $wh
+     * 
+     * @return QuerySelect
+     */
+    public function setWhere(Condition $wh)
+    {
+        $this->where = $wh;
+
+        return $this;
+    }
+    
+    /**     
+     * @return Condition
+     */
+    public function getWhere()
+    {
+        if (!$this->where)
+        {
+            $this->where = Condition::init("AND");
+        }
+        
+        return $this->where;
+    }
+
+    /**
+     * @param String $where_str
+     * 
+     * @return QuerySelect
+     */
+    public function addRawWhere(String $where_str)
+    {
+        $this->raw_where_list[] = $where_str;
+
+        return $this;
+    }
   
     /**
      * @param Join $join
@@ -30,8 +69,14 @@ class Join
      */
     public function join(Join $join)
     {
-        $this->joins[] = $join;
+        $this->join_list[] = $join;
+
         return $this;
+    }
+
+    public function getJoinList()
+    {
+        return $this->join_list;
     }
     
      /**     
@@ -39,7 +84,8 @@ class Join
      */
     public function noField()
     {
-        $this->fields = null;
+        $this->field_list = null;
+
         return $this;
     }
     
@@ -49,14 +95,36 @@ class Join
      * 
      * @return Join
      */
-    public function field(String $field, String $alias = "")
+    public function field(String $field, String | Null $alias = NULL, bool $prepend_table_alias = false)
     {
-        if (!$alias)
+        if ($field == "*")
         {
-            $alias = $field;
+            return $this;
         }
-        
-        $this->fields[$alias] = $field;
+
+        if ($alias)
+        {
+            if ($prepend_table_alias)
+            {
+                $alias = $this->table->getRefName() . QuerySelect::TABLE_FIELD_SEP . $alias;
+            }
+        }
+        else
+        {
+            if ($prepend_table_alias)
+            {
+                $alias = $this->table->getRefName() . QuerySelect::TABLE_FIELD_SEP . $field;
+            }
+        }
+
+        if ($alias)
+        {
+            $this->field_list[] = [$field, $alias];
+        }
+        else
+        {
+            $this->field_list[] = $field;
+        }
 
         return $this;
     }
@@ -77,22 +145,29 @@ class Join
             $table_alias = "`" . $this->table->name . "`";
         }
         
-        if (is_array($this->fields))
+        $fields = [];
+        
+        if (is_array($this->field_list))
         {
-            if (empty($this->fields))
+            foreach($this->field_list as $field)
             {
-                $fields[] = "$table_alias.*";
-            }
-            else
-            {
-                foreach($this->fields as $ailas => $field)
+                if (is_array($field))
+                {
+                    $fields[] = $table_alias . "." . $field[0] . " AS " . $field[1];
+                }
+                else
                 {
                     $fields[] = $table_alias . "." . $field;
                 }
             }
+
+            if (empty($fields))
+            {
+                $fields[] = "$table_alias.*";
+            }
         }
         
-        foreach($this->joins as $join)
+        foreach($this->join_list as $join)
         {
             $fields = array_merge($fields, $join->getFields());
         }
@@ -135,7 +210,30 @@ class Join
             $q .= " = " . "`" . $calling_table->name . "`" . "." . $calling_table->primary_field; 
         }
         
-        foreach($this->joins as $join)
+        $where_str = "";
+        if ($this->where)
+        {
+            $wh_str = trim($this->where->get($join_table_alias));
+
+            if ($wh_str)
+            {
+                $where_str = " AND " . $wh_str;
+            }
+        }
+
+        if (is_array($this->raw_where_list) && !empty($this->raw_where_list))
+        {
+            $where_str .= " " . implode(" ", $this->raw_where_list);
+        }
+
+        $where_str = trim($where_str);
+
+        if ($where_str)
+        {
+            $q .= " " . $where_str;
+        }
+
+        foreach($this->join_list as $join)
         {
             $q .= " " . $join->get($this->table);
         }
